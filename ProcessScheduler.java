@@ -118,10 +118,9 @@ public class ProcessScheduler extends JFrame {
 
         ganttPanel = new JPanel();
         ganttPanel.setBorder(BorderFactory.createTitledBorder("Gantt Chart"));
-        //ganttPanel.setPreferredSize(new Dimension(900, 150)); // Adjusted height to accommodate end times
     
-        JScrollPane ganttScrollPane = new JScrollPane(ganttPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        ganttScrollPane.setPreferredSize(new Dimension(900, 150));
+        JScrollPane ganttScrollPane = new JScrollPane(ganttPanel);
+        ganttScrollPane.setPreferredSize(new Dimension(800, 150)); // Adjusted height to accommodate end times
 
         JPanel southPanel = new JPanel(new BorderLayout());
         southPanel.add(resultPanel, BorderLayout.CENTER);
@@ -526,15 +525,15 @@ public class ProcessScheduler extends JFrame {
         ganttPanel.setLayout(new BoxLayout(ganttPanel, BoxLayout.Y_AXIS)); // Use BoxLayout for vertical arrangement
     
         // Create a panel for the Gantt chart
-        JPanel chartPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        JPanel chartPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     
         
         // Create a panel for the end time labels
-        JPanel timePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)); // Align labels to the left
+        JPanel timePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         
         
         // Add the initial label for time 0
-        JLabel startTimeLabel = new JLabel("0", SwingConstants.CENTER);
+        JLabel startTimeLabel = new JLabel("0", SwingConstants.LEFT);
         startTimeLabel.setPreferredSize(new Dimension(90, 20)); 
         timePanel.add(startTimeLabel);
     
@@ -577,7 +576,7 @@ public class ProcessScheduler extends JFrame {
                     if (processIndex != -1 && !endTimes.get(processIndex).isEmpty()) {
                         // Get the end time corresponding to this instance of the process
                         int endTime = endTimes.get(processIndex).get(0);
-                        JLabel timeLabel = new JLabel(String.valueOf(endTime), SwingConstants.CENTER);
+                        JLabel timeLabel = new JLabel(String.valueOf(endTime), SwingConstants.LEFT);
                         timeLabel.setPreferredSize(new Dimension(90, 20)); 
                         timePanel.add(timeLabel);
                         endTimes.get(processIndex).remove(0);
@@ -609,16 +608,20 @@ public class ProcessScheduler extends JFrame {
             if (processIndex != -1 && !endTimes.get(processIndex).isEmpty()) {
                 // Get the end time corresponding to this instance of the process
                 int endTime = endTimes.get(processIndex).get(0);
-                JLabel timeLabel = new JLabel(String.valueOf(endTime), SwingConstants.CENTER);
+                JLabel timeLabel = new JLabel(String.valueOf(endTime), SwingConstants.LEFT);
                 timeLabel.setPreferredSize(new Dimension(90, 20)); 
                 timePanel.add(timeLabel);
                 endTimes.get(processIndex).remove(0);
             }
         }
         
+        // Making sure chartPanel & timePanel alligned properly
         int totalChartWidth = ganttChart.size() * 90;
-        chartPanel.setPreferredSize(new Dimension(totalChartWidth, 10));
-        timePanel.setPreferredSize(new Dimension(totalChartWidth, 30));
+        chartPanel.setPreferredSize(new Dimension(totalChartWidth + 100, 20));
+        chartPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        timePanel.setPreferredSize(new Dimension(totalChartWidth + 100, 30));
+        timePanel.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 0));
+
         // Add the Gantt chart panel to the main Gantt panel
         ganttPanel.add(chartPanel);
         ganttPanel.add(timePanel);
