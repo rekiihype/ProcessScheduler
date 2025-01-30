@@ -13,7 +13,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
-import java.util.ArrayList;
 
 class Process {
     String name;
@@ -98,12 +97,23 @@ public class ProcessScheduler extends JFrame {
     
         result = new JTextArea();
         result.setEditable(false);
-        add(new JScrollPane(result), BorderLayout.SOUTH);
+        
+        JScrollPane scrollableResult = new JScrollPane(result);
+        scrollableResult.setPreferredSize(new Dimension(800, 100)); // Set preferred height
     
+        JPanel resultPanel = new JPanel(new BorderLayout());
+        resultPanel.add(scrollableResult, BorderLayout.CENTER);
+
+
         ganttPanel = new JPanel();
         ganttPanel.setBorder(BorderFactory.createTitledBorder("Gantt Chart"));
         ganttPanel.setPreferredSize(new Dimension(900, 150)); // Adjusted height to accommodate end times
-        add(ganttPanel, BorderLayout.SOUTH);
+
+        JPanel southPanel = new JPanel(new BorderLayout());
+        southPanel.add(resultPanel, BorderLayout.CENTER);
+        southPanel.add(ganttPanel, BorderLayout.SOUTH);
+
+        add(southPanel, BorderLayout.SOUTH);
 
         setVisible(true);
     }
@@ -459,15 +469,17 @@ public class ProcessScheduler extends JFrame {
         int totalTurnaroundTime = Arrays.stream(turnaroundTime).sum();
         double avgWaitingTime = (double) totalWaitingTime / processes.size();
         double avgTurnaroundTime = (double) totalTurnaroundTime / processes.size();
-     
-        displayGanttChart(ganttChart, endTimes);
-        result.append("\nProcess\tWaiting Time\tTurnaround Time\n");
+    
+         result.append("\nProcess\tWaiting Time\tTurnaround Time\n");
         for (int i = 0; i < processes.size(); i++) {
             result.append(processes.get(i).name + "\t" + waitingTime[i] + "\t\t" + turnaroundTime[i] + "\n");
         }
     
-        result.append("\nAverage Waiting Time: " + String.format("%.2f", avgWaitingTime) + "\n");
-        result.append("Average Turnaround Time: " + String.format("%.2f", avgTurnaroundTime) + "\n");
+        result.append("\nTotal Turnaround Time: " + totalTurnaroundTime + "ms\n");
+        result.append("Average Turnaround Time: " + String.format("%.2f", avgTurnaroundTime) + "ms\n");
+        result.append("Total Waiting Time: " + totalWaitingTime + "ms\n");
+        result.append("Average Waiting Time: " + String.format("%.2f", avgWaitingTime) + "ms\n");
+        displayGanttChart(ganttChart, endTimes);
     }
 
     private void displayGanttChart(List<String> ganttChart, List<List<Integer>> endTimes) {
