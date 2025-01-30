@@ -37,7 +37,7 @@ public class ProcessScheduler extends JFrame {
     private JTextField arrivalTimeFld, burstTimeFld, priorityFld, quantumFld;
     private JTextArea result;
     private JComboBox<String> algorithmComboBox;
-    private JButton addProcessBtn, runBtn;
+    private JButton addProcessBtn, runBtn, clearBtn;
     private JTable processTable;
     private DefaultTableModel table;
     private List<Process> processes = new ArrayList<>();
@@ -45,6 +45,7 @@ public class ProcessScheduler extends JFrame {
     private JLabel priorityLbl; 
     private JLabel quantumLbl;  
     private JPanel input;
+    private JPanel buttonPanel;
     private JPanel ganttPanel;
 
     public ProcessScheduler() {
@@ -53,8 +54,8 @@ public class ProcessScheduler extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
     
-        input = new JPanel(new GridLayout(6, 2, 10, 10));
-        input.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        input = new JPanel(new GridLayout(6, 2, 5, 5));
+        input.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     
         priorityLbl = new JLabel("Priority:");
         quantumLbl = new JLabel("Time Quantum (Round Robin):");
@@ -81,14 +82,24 @@ public class ProcessScheduler extends JFrame {
         algorithmComboBox.addActionListener(e -> updateInputFields());
         input.add(algorithmComboBox);
     
+        input.add(new JLabel());
+        
+        buttonPanel = new JPanel(new GridLayout(1, 3, 5, 5));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
         addProcessBtn = new JButton("Add Process");
         addProcessBtn.addActionListener(new AddProcessListener());
-        input.add(addProcessBtn);
+        buttonPanel.add(addProcessBtn);
     
         runBtn = new JButton("Run Simulation");
         runBtn.addActionListener(e -> runSimulation());
-        input.add(runBtn);
-    
+        buttonPanel.add(runBtn);
+        
+        clearBtn = new JButton("Clear");
+        clearBtn.addActionListener(e -> clearProcesses());
+        buttonPanel.add(clearBtn);
+        
+        input.add(buttonPanel);
         add(input, BorderLayout.NORTH);
     
         table = new DefaultTableModel(new Object[]{"Process", "Arrival Time", "Burst Time", "Priority"}, 0);
@@ -208,6 +219,30 @@ public class ProcessScheduler extends JFrame {
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+    
+    private void clearProcesses() {
+        // Clear the processes list
+        processes.clear();
+    
+        // Clear the table
+        table.setRowCount(0);
+    
+        // Clear the result text area
+        result.setText("");
+    
+        // Clear the Gantt chart
+        ganttPanel.removeAll();
+        ganttPanel.revalidate();
+        ganttPanel.repaint();
+    
+        // Reset input fields
+        arrivalTimeFld.setText("");
+        burstTimeFld.setText("");
+        priorityFld.setText("");
+        quantumFld.setText("");
+    
+        JOptionPane.showMessageDialog(this, "Processes list cleared!", "Success", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void roundRobin(List<Process> processes, int quantum) {
@@ -470,7 +505,7 @@ public class ProcessScheduler extends JFrame {
         double avgWaitingTime = (double) totalWaitingTime / processes.size();
         double avgTurnaroundTime = (double) totalTurnaroundTime / processes.size();
     
-         result.append("\nProcess\tWaiting Time\tTurnaround Time\n");
+        result.append("\nProcess\tWaiting Time\tTurnaround Time\n");
         for (int i = 0; i < processes.size(); i++) {
             result.append(processes.get(i).name + "\t" + waitingTime[i] + "\t\t" + turnaroundTime[i] + "\n");
         }
