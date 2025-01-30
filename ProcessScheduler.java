@@ -118,11 +118,14 @@ public class ProcessScheduler extends JFrame {
 
         ganttPanel = new JPanel();
         ganttPanel.setBorder(BorderFactory.createTitledBorder("Gantt Chart"));
-        ganttPanel.setPreferredSize(new Dimension(900, 150)); // Adjusted height to accommodate end times
+        //ganttPanel.setPreferredSize(new Dimension(900, 150)); // Adjusted height to accommodate end times
+    
+        JScrollPane ganttScrollPane = new JScrollPane(ganttPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        ganttScrollPane.setPreferredSize(new Dimension(900, 150));
 
         JPanel southPanel = new JPanel(new BorderLayout());
         southPanel.add(resultPanel, BorderLayout.CENTER);
-        southPanel.add(ganttPanel, BorderLayout.SOUTH);
+        southPanel.add(ganttScrollPane, BorderLayout.SOUTH);
 
         add(southPanel, BorderLayout.SOUTH);
 
@@ -514,6 +517,7 @@ public class ProcessScheduler extends JFrame {
         result.append("Average Turnaround Time: " + String.format("%.2f", avgTurnaroundTime) + "ms\n");
         result.append("Total Waiting Time: " + totalWaitingTime + "ms\n");
         result.append("Average Waiting Time: " + String.format("%.2f", avgWaitingTime) + "ms\n");
+        
         displayGanttChart(ganttChart, endTimes);
     }
 
@@ -523,11 +527,11 @@ public class ProcessScheduler extends JFrame {
     
         // Create a panel for the Gantt chart
         JPanel chartPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        chartPanel.setPreferredSize(new Dimension(800, 10)); // Adjust size for better visibility
+    
         
         // Create a panel for the end time labels
         JPanel timePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)); // Align labels to the left
-        timePanel.setPreferredSize(new Dimension(800, 30));
+        
         
         // Add the initial label for time 0
         JLabel startTimeLabel = new JLabel("0", SwingConstants.CENTER);
@@ -611,7 +615,10 @@ public class ProcessScheduler extends JFrame {
                 endTimes.get(processIndex).remove(0);
             }
         }
-    
+        
+        int totalChartWidth = ganttChart.size() * 90;
+        chartPanel.setPreferredSize(new Dimension(totalChartWidth, 10));
+        timePanel.setPreferredSize(new Dimension(totalChartWidth, 30));
         // Add the Gantt chart panel to the main Gantt panel
         ganttPanel.add(chartPanel);
         ganttPanel.add(timePanel);
