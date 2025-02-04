@@ -43,7 +43,9 @@ public class ProcessScheduler extends JFrame {
     private List<Process> processes = new ArrayList<>();
     
     private JLabel priorityLbl; 
-    private JLabel quantumLbl;  
+    private JLabel quantumLbl;
+    private JLabel arrivalTimeLbl;
+    private JLabel burstTimeLbl;
     private JPanel input;
     private JPanel buttonPanel;
     private JPanel ganttPanel;
@@ -56,15 +58,23 @@ public class ProcessScheduler extends JFrame {
     
         input = new JPanel(new GridLayout(6, 2, 5, 5));
         input.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        
+        input.add(new JLabel("Select Algorithm:"));
+        String[] algorithms = {"-", "Round Robin", "SRT", "SJN", "Preemptive Priority", "Non-Preemptive Priority"};
+        algorithmComboBox = new JComboBox<>(algorithms);
+        algorithmComboBox.addActionListener(e -> updateInputFields());
+        input.add(algorithmComboBox);
     
         priorityLbl = new JLabel("Priority:");
         quantumLbl = new JLabel("Time Quantum (Round Robin):");
+        arrivalTimeLbl = new JLabel("Arrival Time:");
+        burstTimeLbl = new JLabel("Burst Time:");
     
-        input.add(new JLabel("Arrival Time:"));
+        input.add(arrivalTimeLbl);
         arrivalTimeFld = new JTextField();
         input.add(arrivalTimeFld);
     
-        input.add(new JLabel("Burst Time:"));
+        input.add(burstTimeLbl);
         burstTimeFld = new JTextField();
         input.add(burstTimeFld);
     
@@ -76,11 +86,6 @@ public class ProcessScheduler extends JFrame {
         quantumFld = new JTextField();
         input.add(quantumFld);
     
-        input.add(new JLabel("Select Algorithm:"));
-        String[] algorithms = {"Round Robin", "SRT", "SJN", "Preemptive Priority", "Non-Preemptive Priority"};
-        algorithmComboBox = new JComboBox<>(algorithms);
-        algorithmComboBox.addActionListener(e -> updateInputFields());
-        input.add(algorithmComboBox);
     
         input.add(new JLabel());
         
@@ -127,6 +132,17 @@ public class ProcessScheduler extends JFrame {
         southPanel.add(ganttScrollPane, BorderLayout.SOUTH);
 
         add(southPanel, BorderLayout.SOUTH);
+        
+        // Set all labels and fields as invisible at the start
+        arrivalTimeLbl.setVisible(false);
+        burstTimeLbl.setVisible(false);
+        priorityLbl.setVisible(false);
+        quantumLbl.setVisible(false);
+        arrivalTimeFld.setVisible(false);
+        burstTimeFld.setVisible(false);
+        priorityFld.setVisible(false);
+        quantumFld.setVisible(false);
+        addProcessBtn.setVisible(false);
 
         setVisible(true);
     }
@@ -135,12 +151,20 @@ public class ProcessScheduler extends JFrame {
         String selectedAlgorithm = (String) algorithmComboBox.getSelectedItem();
         boolean isPriorityAlgorithm = selectedAlgorithm.contains("Priority");
         boolean isRoundRobin = selectedAlgorithm.equals("Round Robin");
+        boolean isNoAlgorithm = selectedAlgorithm.equals("-");
     
-        priorityLbl.setVisible(isPriorityAlgorithm);
-        priorityFld.setVisible(isPriorityAlgorithm);
+        // Hide all input fields if no algorithm is selected
+        arrivalTimeLbl.setVisible(!isNoAlgorithm);
+        burstTimeLbl.setVisible(!isNoAlgorithm);
+        arrivalTimeFld.setVisible(!isNoAlgorithm);
+        burstTimeFld.setVisible(!isNoAlgorithm);
+        priorityLbl.setVisible(isPriorityAlgorithm && !isNoAlgorithm);
+        priorityFld.setVisible(isPriorityAlgorithm && !isNoAlgorithm);
+        quantumLbl.setVisible(isRoundRobin && !isNoAlgorithm);
+        quantumFld.setVisible(isRoundRobin && !isNoAlgorithm);
     
-        quantumLbl.setVisible(isRoundRobin);
-        quantumFld.setVisible(isRoundRobin);
+        // Hide the "Add Process" button if no algorithm is selected
+        addProcessBtn.setVisible(!isNoAlgorithm);
     
         input.revalidate();
         input.repaint();
@@ -158,6 +182,12 @@ public class ProcessScheduler extends JFrame {
     
                 int priority = 0;
                 String selectedAlgorithm = (String) algorithmComboBox.getSelectedItem();
+                
+                if (selectedAlgorithm.equals("-")) {
+                    JOptionPane.showMessageDialog(ProcessScheduler.this, "Please select an algorithm.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+        
                 if (selectedAlgorithm.contains("Priority")) {
                     priority = Integer.parseInt(priorityFld.getText());
                     if (priority < 0) {
@@ -265,15 +295,20 @@ public class ProcessScheduler extends JFrame {
         int doneProc = 0;
     
         while (doneProc < processes.size()) {
+            List<Process> arrivingProcesses = new ArrayList<>();
+            
             for (int i = 0; i < processes.size(); i++) {
                 if (processes.get(i).arrivalTime <= currentTime && !isReady[i]) {
-                    queue.add(processes.get(i));
-                    isReady[i] = true; 
+                    arrivingProcesses.add(processes.get(i));
+                    isReady[i] = true;
                 }
             }
+            
+            arrivingProcesses.sort(Comparator.comparingInt(p -> p.burstTime));
+            queue.addAll(arrivingProcesses);
     
             if (!queue.isEmpty()) {
-                Process currentProc = queue.poll();
+                Process currentProc = queue.poll(); // Get the next process from the queue and remove it 
                 int index = processes.indexOf(currentProc);
     
                 int executionTime = Math.min(remainingTime[index], quantum);
@@ -287,12 +322,16 @@ public class ProcessScheduler extends JFrame {
                     waitingTime[procIndex] += executionTime;
                 }
     
+                List<Process> newArrivals = new ArrayList<>();
                 for (int i = 0; i < processes.size(); i++) {
                     if (processes.get(i).arrivalTime <= currentTime && !isReady[i]) {
-                        queue.add(processes.get(i));
-                        isReady[i] = true; 
+                        newArrivals.add(processes.get(i));
+                        isReady[i] = true;
                     }
                 }
+    
+                newArrivals.sort(Comparator.comparingInt(p -> p.burstTime));
+                queue.addAll(newArrivals);
     
                 if (remainingTime[index] > 0) {
                     queue.add(currentProc);
@@ -308,6 +347,7 @@ public class ProcessScheduler extends JFrame {
     
         displayResults(processes, waitingTime, turnaroundTime, endTimes, ganttChart);
     }
+
 
     private void srt(List<Process> processes) {
         int currentTime = 0;
